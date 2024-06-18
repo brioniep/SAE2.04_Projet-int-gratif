@@ -1,0 +1,26 @@
+{% extends "main.html" %}
+
+{% block body %}
+
+<div class="affiche_film">
+    <h2>Film - {{film.titre}}</h2>
+
+    {% if film.affiche %}
+        <img src="{{ film.affiche.url }}">
+    {% else %}
+        <p>Aucune image disponible</p>
+    {% endif %}
+
+    <h3>Titre : {{film.titre}}</h3>
+    <h3>Catégorie : {{film.categorie}}</h3>
+    <h3>Année de sortie : {{film.annee}}</h3>
+    <h3>Réalisateur : {{film.realisateur}}</h3>
+    <h3>Acteurs :</h3>
+    <ul>
+        {% for acteur in film.acteur.all %}
+            <li>{{ acteur.nom }} {{ acteur.prenom }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock body %}

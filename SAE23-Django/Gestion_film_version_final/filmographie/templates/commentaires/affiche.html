@@ -1,0 +1,13 @@
+{% extends "main.html" %}
+
+{% block body %}
+
+<div class="affiche_categorie">
+    <h2>Commentaire de {{commentaire.utilisateur}} sur le film {{commentaire.film}}</h2>
+
+    <h3>Note : {{commentaire.note}}/20</h3>
+    <h3>{{commentaire.commentaire}}</h3>
+    <h3>Date : {{commentaire.date}}</h3>
+</div>
+
+{% endblock body %}

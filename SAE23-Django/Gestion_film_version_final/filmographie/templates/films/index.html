@@ -1,0 +1,18 @@
+{% extends "main.html" %}
+
+{% block body %}
+
+<div class="container">
+        <h1>Liste des films</h1>
+        <a class="button" href="/ajout-films">Ajouter un film</a>
+        <a class="button button-secondary" href="/import-films">Importer un film</a>
+    <ul class="list"> 
+        <ol>
+            {% for f in liste %}
+                <li> {{f}} <a class="button" href="/affiche-films/{{f.id}}/"> Afficher </a> <a class="button" href="/update-films/{{f.id}}/"> Modifier </a> <a class="button button-danger" href="/delete-films/{{f.id}}/"> Supprimer </a> <a class="button button-secondary" href="{% url 'commentaires-par-film' f.id %}">Voir les commentaires</a> <a class="button button-secondary" href="/generate-pdf/{{f.id}}/">Générer PDF</a> </li>
+            {% endfor %}
+        </ol>
+    </ul>
+</div>
+
+{% endblock body %}

@@ -1,0 +1,20 @@
+{% extends "main.html" %}
+
+{% block body %}
+
+<div class="container">
+
+    <h1>Liste des acteurs</h1>
+    <a class="button" href="/ajout-acteurs">Ajouter un acteur</a>
+
+    <ul class="list"> 
+        <ol>
+            {% for a in liste %}
+                <li> {{a}} <a class="button" href="/affiche-acteurs/{{a.id}}/"> Afficher </a> <a class="button" href="/update-acteurs/{{a.id}}/"> Modifier </a> <a class="button button-danger" href="/delete-acteurs/{{a.id}}/"> Supprimer </a> </li>
+            {% endfor %}
+        </ol>
+    </ul>
+
+</div>
+
+{% endblock body %}

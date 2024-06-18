@@ -1,0 +1,18 @@
+{% extends "main.html" %}
+
+{% block body %}
+
+<div class="contentindex">
+    <h1> Saisie d'un nouveau commentaire</h1>
+        {% if id is not None %}
+                <form method="post" action="/updatetraitement-commentaires/{{id}}/">
+            {% else %}
+                <form method="post" action="/traitement-commentaires/">
+            {% endif %}
+        {% csrf_token %}
+        {{form.as_ul}}
+        <input type="submit" value="envoyez les données"/>
+    </form>
+</div>
+
+{% endblock body %}

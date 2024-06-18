@@ -1,0 +1,26 @@
+{% extends "main.html" %}
+
+{% block body %}
+
+<div class="CSV">
+    <h1>Importation des Films</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="csv_file">Choisir un fichier CSV :</label>
+        <input type="file" name="csv_file" required>
+        <button type="submit">Importer</button>
+    </form>
+
+    <h3>Règle de formatage du fichier CSV :</h3>
+    <p>Les données doivent être écrites dans cette ordre là : <strong>titre,annee,realisateur,categorie,acteur</strong></p>
+    <p>Chaque données est séparées d'une virgule (,)</p>
+    <p>L'année de sortie doit être écrite sous le format américain (AAAA-MM-JJ), ne pas oublier de mettre un tiret entre chaque nombre</p>
+    <p>Pour les acteurs, il faut les mettre entre guillemets et d'abord écrire le prénom puis le nom séparé par un espace.</p>
+    <p>De plus, il y a une virgule accompagnée d'un espace entre chaque acteurs différents ("nom prénom, nom prénom, nom prénom")</p>
+
+    <h3>Voici un exemple complet de comment doit être formaté le fichier CSV :</h3>
+    <p><strong>titre,annee,realisateur,categorie,acteur</strong></p>
+    <p><strong>Titanic,1998-01-07,James Cameron,Romance,"Leonardo DiCaprio, Kate Winslet"</strong></p>
+</div>
+
+{% endblock %}
