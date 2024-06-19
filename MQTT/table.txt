@@ -1,0 +1,14 @@
+CREATE TABLE Capteurs (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    Nom VARCHAR(255) UNIQUE,
+    Piece VARCHAR(255),
+    Emplacement VARCHAR(255)
+);
+
+CREATE TABLE Donnees (
+    ID VARCHAR(255) PRIMARY KEY,
+    CapteurID INT,
+    Timestamp TIMESTAMP,
+    Valeur DECIMAL(5,2),
+    FOREIGN KEY (CapteurID) REFERENCES Capteurs(ID)
+);
