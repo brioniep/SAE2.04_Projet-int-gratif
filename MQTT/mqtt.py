@@ -1,111 +1,82 @@
-import mysql.connector #pip install mysql-connector-python
-import paho.mqtt.client as mqtt #pip install paho.mqtt
-import re
+import paho.mqtt.client as mqtt #pip install mysql-connector-python
+import pymysql #pip install pymysql
+from datetime import datetime
 
-# Paramètres de connexion au broker MQTT
 broker = "test.mosquitto.org"
 topic = "IUT/Colmar2024/SAE2.04/Maison1"
 port = 1883
 
-# Paramètres de connexion à la base de données MySQL
-db_host = "192.168.1.14"
-db_user = "root"
-db_password = "Sae@2025!1"
-db_name = "integratif"
+# Connexion MySQL
+db = pymysql.connect(
+    host="localhost",
+    user="siteusr",
+    password="2503",
+    database="SiteCollecte"
+)
+cursor = db.cursor()
 
-# Connexion à la base de données MySQL
-def connect_to_db():
-    return mysql.connector.connect(
-        host=db_host,
-        user=db_user,
-        password=db_password,
-        database=db_name
-    )
+sensors = {}
 
-# Callback lors de la connexion au broker MQTT
+# Callback de connexion MQTT
 def on_connect(client, userdata, flags, rc):
     print("Connecté avec le code de retour: " + str(rc))
     client.subscribe(topic)
 
-# Fonction pour extraire les données du message
-def parse_message(message):
-    pattern = r'Id=(\w+),piece=(\w+),date=(\d{2}/\d{2}/\d{4}),heure=(\d{2}:\d{2}:\d{2}),temp=(\d+),(\d+)'
-    match = re.match(pattern, message)
-    if match:
-        mqtt_id = match.group(1)
-        piece = match.group(2)
-        date = match.group(3)
-        heure = match.group(4)
-        temp_integer = match.group(5)
-        temp_fraction = match.group(6)
-        temperature = f"{temp_integer}.{temp_fraction}"
-        return mqtt_id, piece, date, heure, temperature
-    else:
-        return None
-
-# Fonction pour vérifier et insérer un capteur s'il n'existe pas
-def check_and_insert_sensor(sensor_id, piece):
-    connection = connect_to_db()
-    cursor = connection.cursor()
-    try:
-        cursor.execute("SELECT ID FROM Capteurs WHERE Nom = %s", (sensor_id,))
-        result = cursor.fetchone()
-        if result:
-            sensor_db_id = result[0]
-        else:
-            cursor.execute("INSERT INTO Capteurs (Nom, Piece, Emplacement) VALUES (%s, %s, %s)", (sensor_id, piece, piece))
-            connection.commit()
-            sensor_db_id = cursor.lastrowid
-        return sensor_db_id
-    except mysql.connector.Error as err:
-        print(f"Erreur: {err}")
-    finally:
-        cursor.close()
-        connection.close()
-
-# Callback lors de la réception d'un message MQTT
+# Callback de réception de message MQTT
 def on_message(client, userdata, msg):
-    print(f"Message reçu sur le topic {msg.topic}: {msg.payload.decode()}")
-    data = msg.payload.decode()
-    parsed_data = parse_message(data)
-    if parsed_data:
-        mqtt_id, piece, date, heure, temperature = parsed_data
-        sensor_db_id = check_and_insert_sensor(mqtt_id, piece)
-        insert_data_into_db(mqtt_id, sensor_db_id, f"{date} {heure}", temperature)
+    message = msg.payload.decode('utf-8')
+    print(f"Message reçu sur le topic {msg.topic}: {message}")
+    process_message(message)
 
-# Fonction pour insérer les données dans la base de données MySQL
-def insert_data_into_db(mqtt_id, sensor_id, timestamp, value):
-    connection = connect_to_db()
-    cursor = connection.cursor()
+# Fonction pour traiter les messages reçus
+def process_message(message):
+    data = {}
+    for item in message.split(','):
+        key, value = item.split('=')
+        data[key.strip()] = value.strip()
+
+    sensor_id = data['Id']
+    piece = data['piece']
+    timestamp = datetime.strptime(f"{data['date']} {data['time']}", "%d/%m/%Y %H:%M:%S")
+    value = float(data['temp'])
+
+    if sensor_id not in sensors:
+        sensors[sensor_id] = {
+            'Nom': sensor_id,
+            'Piece': piece,
+            'Emplacement': ''
+        }
+        try:
+            cursor.execute("INSERT INTO sensor (name, piece, emplacement) VALUES (%s, %s, %s)",
+                           (sensor_id, piece, ''))
+            db.commit()
+            print(f"Capteur {sensor_id} inséré dans la base de données")
+        except pymysql.Error as e:
+            print(f"Erreur lors de l'insertion du capteur {sensor_id} : {e}")
+            db.rollback()
+
     try:
-        sql = """
-            INSERT INTO Donnees (ID, CapteurID, Timestamp, Valeur)
-            VALUES (%s, %s, %s, %s)
-        """
-        cursor.execute(sql, (mqtt_id, sensor_id, timestamp, value))
-        connection.commit()
+        cursor.execute("INSERT INTO temperaturedata (sensor_id, timestamp, value) VALUES (%s, %s, %s)",
+                       (sensor_id, timestamp, value))
+        db.commit()
         print("Données insérées avec succès")
-    except mysql.connector.Error as err:
-        print(f"Erreur: {err}")
-    finally:
-        cursor.close()
-        connection.close()
+    except pymysql.Error as e:
+        print(f"Erreur lors de l'insertion des données : {e}")
+        db.rollback()
 
-# Création d'un client MQTT
+# Configuration et lancement du client MQTT
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-# Connexion au broker MQTT
 client.connect(broker, port, 60)
 
-# Boucle réseau MQTT avec gestion des interruptions
+# Boucle de réception des messages MQTT
 try:
     print("Démarrage de la boucle MQTT. Appuyez sur Ctrl+C pour arrêter.")
     client.loop_forever()
 except KeyboardInterrupt:
     print("Interruption par l'utilisateur. Arrêt du programme.")
-finally:
-    print("Nettoyage avant la fermeture.")
     client.disconnect()
-    print("Client MQTT déconnecté.")
+    cursor.close()
+    db.close()
