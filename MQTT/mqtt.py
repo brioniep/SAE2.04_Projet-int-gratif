@@ -8,10 +8,10 @@ topic = "IUT/Colmar2024/SAE2.04/Maison1"
 port = 1883
 
 # Paramètres de connexion à la base de données MySQL
-db_host = "localhost"
-db_user = "votre_utilisateur"
-db_password = "votre_mot_de_passe"
-db_name = "votre_base_de_donnees"
+db_host = "192.168.1.14"
+db_user = "root"
+db_password = "Sae@2025!1"
+db_name = "integratif"
 
 # Connexion à la base de données MySQL
 def connect_to_db():
@@ -99,5 +99,13 @@ client.on_message = on_message
 # Connexion au broker MQTT
 client.connect(broker, port, 60)
 
-# Boucle réseau MQTT
-client.loop_forever()
+# Boucle réseau MQTT avec gestion des interruptions
+try:
+    print("Démarrage de la boucle MQTT. Appuyez sur Ctrl+C pour arrêter.")
+    client.loop_forever()
+except KeyboardInterrupt:
+    print("Interruption par l'utilisateur. Arrêt du programme.")
+finally:
+    print("Nettoyage avant la fermeture.")
+    client.disconnect()
+    print("Client MQTT déconnecté.")
