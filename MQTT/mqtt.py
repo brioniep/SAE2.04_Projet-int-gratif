@@ -1,6 +1,7 @@
-import paho.mqtt.client as mqtt #pip install mysql-connector-python
+import paho.mqtt.client as mqtt #pip install paho.mqtt
 import pymysql #pip install pymysql
 from datetime import datetime
+#pip install cryptography
 
 broker = "test.mosquitto.org"
 topic = "IUT/Colmar2024/SAE2.04/Maison1"
@@ -8,10 +9,10 @@ port = 1883
 
 # Connexion MySQL
 db = pymysql.connect(
-    host="localhost",
-    user="",
-    password="",
-    database=""
+    host="192.168.115.137",
+    user="root",
+    password="root",
+    database="integratif"
 )
 cursor = db.cursor()
 
@@ -49,7 +50,7 @@ def process_message(message):
         }
 
     try:
-        cursor.execute("SELECT id FROM sensor WHERE name = %s AND piece = %s", (sensor_id, piece))
+        cursor.execute("SELECT ID FROM Capteurs WHERE Nom = %s AND Piece = %s", (sensor_id, piece))
         existing_sensor = cursor.fetchone()
 
         if existing_sensor:
@@ -57,7 +58,7 @@ def process_message(message):
             print(f"Capteur {sensor_id} pour la pièce {piece} existe déjà dans la base de données.")
         else:
             # Capteur n'existe pas encore pour cette pièce, l'ajouter
-            cursor.execute("INSERT INTO sensor (name, piece, emplacement) VALUES (%s, %s, %s)",
+            cursor.execute("INSERT INTO Capteurs (Nom, Piece, Emplacement) VALUES (%s, %s, %s)",
                            (sensor_id, piece, ''))
             db.commit()
             print(f"Capteur {sensor_id} inséré dans la base de données pour la pièce {piece}")
@@ -66,8 +67,8 @@ def process_message(message):
         db.rollback()
 
     try:
-        cursor.execute("INSERT INTO temperaturedata (sensor_id, timestamp, value) VALUES (%s, %s, %s)",
-                       (sensor_id, timestamp, value))
+        cursor.execute("INSERT INTO Donnees (CapteurID, Timestamp, Valeur) VALUES ((SELECT ID FROM Capteurs WHERE Nom = %s AND Piece = %s), %s, %s)",
+                       (sensor_id, piece, timestamp, value))
         db.commit()
         print("Données insérées avec succès")
     except pymysql.Error as e:
