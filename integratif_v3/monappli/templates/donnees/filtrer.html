@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Filtrer les Données</title>
+</head>
+<body>
+    <h1>Filtrer les Données</h1>
+    <form method="get">
+        {{ form.as_p }}
+        <button type="submit">Filtrer</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Capteur</th>
+                <th>Date</th>
+                <th>Température</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for donnee in donnees %}
+                <tr>
+                    <td>{{ donnee.id }}</td>
+                    <td>{{ donnee.capteur.nom }}</td>
+                    <td>{{ donnee.timestamp }}</td>
+                    <td>{{ donnee.valeur }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
