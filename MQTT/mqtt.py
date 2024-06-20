@@ -1,5 +1,5 @@
 import mysql.connector #pip install mysql-connector-python
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt #pip install paho.mqtt
 import re
 
 # Paramètres de connexion au broker MQTT
