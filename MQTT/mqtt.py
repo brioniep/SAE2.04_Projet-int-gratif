@@ -9,9 +9,9 @@ port = 1883
 # Connexion MySQL
 db = pymysql.connect(
     host="localhost",
-    user="siteusr",
-    password="2503",
-    database="SiteCollecte"
+    user="",
+    password="",
+    database=""
 )
 cursor = db.cursor()
 
@@ -40,20 +40,30 @@ def process_message(message):
     timestamp = datetime.strptime(f"{data['date']} {data['time']}", "%d/%m/%Y %H:%M:%S")
     value = float(data['temp'])
 
+    # Vérifier si le capteur existe déjà pour cette pièce
     if sensor_id not in sensors:
         sensors[sensor_id] = {
             'Nom': sensor_id,
             'Piece': piece,
             'Emplacement': ''
         }
-        try:
+
+    try:
+        cursor.execute("SELECT id FROM sensor WHERE name = %s AND piece = %s", (sensor_id, piece))
+        existing_sensor = cursor.fetchone()
+
+        if existing_sensor:
+            # Capteur existant, ne rien faire ici
+            print(f"Capteur {sensor_id} pour la pièce {piece} existe déjà dans la base de données.")
+        else:
+            # Capteur n'existe pas encore pour cette pièce, l'ajouter
             cursor.execute("INSERT INTO sensor (name, piece, emplacement) VALUES (%s, %s, %s)",
                            (sensor_id, piece, ''))
             db.commit()
-            print(f"Capteur {sensor_id} inséré dans la base de données")
-        except pymysql.Error as e:
-            print(f"Erreur lors de l'insertion du capteur {sensor_id} : {e}")
-            db.rollback()
+            print(f"Capteur {sensor_id} inséré dans la base de données pour la pièce {piece}")
+    except pymysql.Error as e:
+        print(f"Erreur lors de l'insertion ou vérification du capteur {sensor_id} : {e}")
+        db.rollback()
 
     try:
         cursor.execute("INSERT INTO temperaturedata (sensor_id, timestamp, value) VALUES (%s, %s, %s)",
