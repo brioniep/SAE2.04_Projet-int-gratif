@@ -1,0 +1,23 @@
+{% extends "main.html" %}
+
+
+
+{% block body %}
+<form action="/updatetraitement-capteurs/{{id}}/" method="post" id="formulaire">
+
+
+
+
+      {% csrf_token %}
+
+
+      {{form.as_ul}}
+
+  <input type="submit" id="join-btn" name="join" alt="Join" value="Envoyer les données">
+
+  </form>
+
+
+{% endblock body %}
+
+

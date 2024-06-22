@@ -1,0 +1,98 @@
+{% extends "main.html" %}
+
+
+{% block body %}
+
+    <canvas id="myChart" width="400" height="200"></canvas>
+    <script>
+        // Données générées
+        const data = [];
+        const data2 = [];
+        let prev = 100;
+        let prev2 = 80;
+        for (let i = 0; i < 1000; i++) {
+          prev += 5 - Math.random() * 10;
+          data.push({x: i, y: prev});
+          prev2 += 5 - Math.random() * 10;
+          data2.push({x: i, y: prev2});
+        }
+
+        // Fonction pour récupérer la position Y précédente
+        const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
+
+        // Configuration de l'animation
+        const totalDuration = 10000;
+        const delayBetweenPoints = totalDuration / data.length;
+        const animation = {
+          x: {
+            type: 'number',
+            easing: 'linear',
+            duration: delayBetweenPoints,
+            from: NaN, // le point est initialement ignoré
+            delay(ctx) {
+              if (ctx.type !== 'data' || ctx.xStarted) {
+                return 0;
+              }
+              ctx.xStarted = true;
+              return ctx.index * delayBetweenPoints;
+            }
+          },
+          y: {
+            type: 'number',
+            easing: 'linear',
+            duration: delayBetweenPoints,
+            from: previousY,
+            delay(ctx) {
+              if (ctx.type !== 'data' || ctx.yStarted) {
+                return 0;
+              }
+              ctx.yStarted = true;
+              return ctx.index * delayBetweenPoints;
+            }
+          }
+        };
+
+        // Configuration du graphique
+        const config = {
+          type: 'line',
+          data: {
+            datasets: [{
+              borderColor: 'red', // Utilisation d'une couleur directe au lieu de Utils.CHART_COLORS.red
+              borderWidth: 1,
+              radius: 0,
+              data: data,
+            },
+            {
+              borderColor: 'blue', // Utilisation d'une couleur directe au lieu de Utils.CHART_COLORS.blue
+              borderWidth: 1,
+              radius: 0,
+              data: data2,
+            }]
+          },
+          options: {
+            animation,
+            interaction: {
+              intersect: false
+            },
+            plugins: {
+              legend: false
+            },
+            scales: {
+              x: {
+                type: 'linear'
+              }
+            }
+          }
+        };
+
+        // Initialisation du graphique après le chargement de la page
+        window.onload = function() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, config);
+        };
+    </script>
+
+
+
+
+{% endblock body %}
