@@ -1,0 +1,107 @@
+{% extends "main.html" %}
+
+
+{% block body %}
+    <canvas id="myChart" width="400" height="200"></canvas>
+    <script>
+        async function fetchSensorData() {
+            try {
+                const response = await fetch('/api/all-sensor-data/');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Données récupérées de l'API:", data);
+                return data;
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données:", error);
+                return null;
+            }
+        }
+
+        function transformData(data) {
+            const datasets = [];
+
+            for (const [capteurID, values] of Object.entries(data)) {
+                const dataset = {
+                    label: `Capteur ${capteurID}`,
+                    data: values.map(entry => ({
+                        x: parseTimestamp(entry.timestamp),
+                        y: parseFloat(entry.valeur)
+                    })),
+                    borderColor: getRandomColor(),
+                    borderWidth: 1,
+                    radius: 0
+                };
+                datasets.push(dataset);
+            }
+
+            console.log("Jeux de données transformés pour Chart.js:", datasets);
+            return datasets;
+        }
+
+        function parseTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.getMinutes() + date.getSeconds() / 60;
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        async function initChart() {
+            const sensorData = await fetchSensorData();
+            if (sensorData) {
+                const datasets = transformData(sensorData);
+
+                const ctx = document.getElementById('myChart').getContext('2d');
+                const config = {
+                    type: 'line',
+                    data: {
+                        datasets: datasets
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                title: {
+                                    display: true,
+                                    text: 'Minutes'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Value'
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        }
+                    }
+                };
+                console.log("Configuration Chart.js:", config);
+                new Chart(ctx, config);
+            } else {
+                console.error("Aucune donnée récupérée pour le graphique.");
+            }
+        }
+
+        window.onload = initChart;
+    </script>
+    
+    
+    {% endblock body %}
+
