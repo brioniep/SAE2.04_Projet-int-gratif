@@ -1,0 +1,33 @@
+{% extends "main.html" %}
+
+{% block body %}
+
+
+
+
+<div class="tableau_données">
+    <div class="ligne_titre">
+        <p colspan="4">Capteurs tableau</p>
+    </div>
+    <div class="ligne_données_défault">
+        <p>ID capteurs</p>
+        <p>Nom capteurs</p>
+        <p>Pièce capteurs</p>
+        <p>Emplacement capteurs</p>
+        <p>Option</p>
+    </div>
+    {% for capteurs in liste %}
+    <div class="ligne_données {% if capteurs.nom == 'B8A5F3569EFF' %}capteur-red{% elif capteurs.nom == 'A72E3F6B79BB' %}capteur-blue{% endif %}">
+        <p>{{ capteurs.nom }}</p>
+        <p>{{capteurs.nom2}}</p> <!-- Assurez-vous que capteurID est bien l'attribut du modèle -->
+        <p>{{ capteurs.piece }}</p>
+        <p>{{ capteurs.emplacement }}</p>
+        <p><a href="/update-capteurs/{{ capteurs.id }}" class="lien-capteur">Modifier</a></p>
+        </div>
+    {% endfor %}
+</div>
+
+
+
+
+{% endblock body %}
